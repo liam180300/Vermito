@@ -1,4 +1,4 @@
-e<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -7,6 +7,7 @@ e<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   :root{
     --ink:#1C232B;
@@ -267,6 +268,7 @@ e<!DOCTYPE html>
   }
   .submit-btn:hover{background:var(--amber-deep);}
   .submit-btn:active{transform:scale(0.99);}
+  .submit-btn:disabled{opacity:0.7; cursor:default;}
 
   .call-btn{
     flex:1;
@@ -441,45 +443,6 @@ e<!DOCTYPE html>
     margin-bottom:18px;
   }
 
-  /* ---------- Companies CTA ---------- */
-  .biz-cta{
-    background:var(--moss);
-    color:#fff;
-  }
-
-  .biz-cta-inner{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:30px;
-    flex-wrap:wrap;
-  }
-
-  .biz-cta h2{
-    font-size:1.7rem;
-    color:#fff;
-    max-width:20ch;
-  }
-
-  .biz-cta p{
-    color:rgba(255,255,255,0.82);
-    margin-top:10px;
-    max-width:42ch;
-  }
-
-  .biz-cta-btn{
-    display:inline-block;
-    background:#fff;
-    color:var(--moss);
-    padding:13px 26px;
-    border-radius:4px;
-    text-decoration:none;
-    font-weight:600;
-    white-space:nowrap;
-    transition:background .15s ease;
-  }
-  .biz-cta-btn:hover{background:var(--paper);}
-
   /* ---------- Footer ---------- */
   footer{
     background:var(--ink);
@@ -619,20 +582,29 @@ e<!DOCTYPE html>
       </form>
 
       <script>
-        // ---- HIER EINTRAGEN ----
-        const OWNER_EMAIL = "liamjakob1803@gmail.com";
+        // ---- HIER EINTRAGEN (aus deinem EmailJS-Dashboard) ----
+        const EMAILJS_PUBLIC_KEY  = "m--D-i2NRTQhnEdHf";
+        const EMAILJS_SERVICE_ID  = "service_4weg662";
+        const EMAILJS_TEMPLATE_ID = "template_kyusyxp";
         const OWNER_PHONE = "+4915906401741";
-        // -------------------------
+        // ---------------------------------------------------------
+
+        emailjs.init(EMAILJS_PUBLIC_KEY);
 
         document.getElementById('call-link').href = 'tel:' + OWNER_PHONE.replace(/\s+/g, '');
 
         const form = document.getElementById('anfrage-form');
         const status = document.getElementById('form-status');
+        const submitBtn = form.querySelector('.submit-btn');
 
         form.addEventListener('submit', function(e){
           e.preventDefault();
 
-          const data = {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Wird gesendet …';
+          status.textContent = '';
+
+          const templateParams = {
             leistung: document.getElementById('kategorie').value,
             plz: document.getElementById('plz').value,
             termin: document.getElementById('termin').value,
@@ -641,25 +613,18 @@ e<!DOCTYPE html>
             kontakt: document.getElementById('kontakt').value
           };
 
-          const subject = `Neue Anfrage über Vermito – ${data.leistung || 'Leistung offen'}`;
-
-          const body =
-`Neue Anfrage über die Vermito-Landingpage:
-
-Leistung: ${data.leistung}
-PLZ: ${data.plz}
-Zeitrahmen: ${data.termin}
-
-Beschreibung:
-${data.beschreibung}
-
-Name: ${data.name}
-Kontakt (Telefon/E-Mail): ${data.kontakt}`;
-
-          const mailtoLink = `mailto:${OWNER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-          status.textContent = 'Ihr E-Mail-Programm öffnet sich gleich – bitte dort noch auf „Senden" klicken.';
-          window.location.href = mailtoLink;
+          emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+            .then(function(){
+              form.reset();
+              submitBtn.textContent = 'Anfrage gesendet ✓';
+              status.textContent = 'Danke! Wir melden uns mit einem passenden Betrieb bei Ihnen.';
+            })
+            .catch(function(err){
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Anfrage per E-Mail senden';
+              status.textContent = 'Da ist leider etwas schiefgelaufen. Bitte versuchen Sie es erneut oder rufen Sie an.';
+              console.error('EmailJS-Fehler:', err);
+            });
         });
       </script>
     </div>
